@@ -1,0 +1,13 @@
+# Local secrets and database backups
+.env
+.env.*
+!.env.example
+php/config.local.php
+*.log
+*.sql.gz
+*.sqlite
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

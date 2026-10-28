@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber-Cueillette - Dashboard Agriculteur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f5f5; }
+
+        .sidebar {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            min-height: 100vh;
+            color: white;
+            position: fixed;
+            width: 280px;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .sidebar-header h3 { margin: 0; font-size: 1.5rem; }
+        .sidebar-header p  { margin: 10px 0 0; font-size: 0.8rem; opacity: 0.8; }
+
+        .nav-menu { padding: 20px 0; }
+        .nav-item  { list-style: none; margin: 5px 0; }
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .nav-link-custom:hover,
+        .nav-link-custom.active { background: rgba(255,255,255,0.2); }
+        .nav-link-custom i { width: 30px; margin-right: 10px; }
+
+        .main-content { margin-left: 280px; padding: 20px; }
+
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title { font-size: 1.5rem; font-weight: 600; color: #333; }
+
+        .btn-deconnexion {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-deconnexion:hover { background: #c82333; }
+
+        .btn-success-custom {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-success-custom:hover { background: #1b5e20; }
+
+        .btn-warning-custom {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-warning-custom:hover { background: #e65100; }
+
+        .card-dashboard {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .alert-floating {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn  { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+        .offre-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        .offre-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+
+        .badge-success { background: #4caf50; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .badge-warning { background: #ff9800; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-mini-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid #2e7d32;
+        }
+        .stat-mini-card.orange { border-left-color: #ff9800; }
+        .stat-mini-card.blue   { border-left-color: #2196f3; }
+        .stat-mini-card.red    { border-left-color: #dc3545; }
+
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .stat-icon.green  { background: #e8f5e9; color: #2e7d32; }
+        .stat-icon.orange { background: #fff3e0; color: #ff9800; }
+        .stat-icon.blue   { background: #e3f2fd; color: #2196f3; }
+        .stat-icon.red    { background: #fce4ec; color: #dc3545; }
+
+        .stat-info h4 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #333; }
+        .stat-info p  { font-size: 0.75rem; color: #888; margin: 0; }
+
+        .chart-container { position: relative; height: 220px; }
+
+        @media (max-width: 768px) { .sidebar { margin-left: -280px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-tractor"></i> Uber-Cueillette</h3>
+        <p id="welcomeText">Espace Agriculteur</p>
+    </div>
+    <ul class="nav-menu">
+        <li class="nav-item"><a href="#" class="nav-link-custom active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="ajouter-offre"><i class="fas fa-plus-circle"></i> Ajouter une offre</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="mes-offres"><i class="fas fa-list"></i> Mes offres</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="candidatures"><i class="fas fa-users"></i> Candidatures</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="evaluations"><i class="fas fa-star"></i> Évaluations</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="statistiques"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="profil"><i class="fas fa-user"></i> Mon profil</a></li>
+        <li class="nav-item"><a href="index.html" class="nav-link-custom"><i class="fas fa-home"></i> Accueil</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" id="logoutLink"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="top-bar">
+        <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
+        <button class="btn-deconnexion" onclick="deconnecter()">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </button>
+    </div>
+    <div id="pageContent"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+// ========== VÉRIFICATION SESSION ==========
+fetch('php/verifier_session.php')
+    .then(r => r.json())
+    .then(data => {
+        if (!data.connecte) {
+            window.location.href = 'index.html';
+        } else if (data.type !== 'agriculteur') {
+            window.location.href = 'dashboard_ouvrier.html';
+        } else {
+            document.getElementById('welcomeText').textContent = 'Bienvenue ' + data.pseudo;
+        }
+    })
+    .catch(() => console.error('Erreur vérification session'));
+
+// ========== UTILITAIRES ==========
+function showMessage(message, isError = true) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${isError ? 'danger' : 'success'} alert-floating`;
+    alertDiv.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'} me-2"></i>${message}`;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => {
+        alertDiv.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => alertDiv.remove(), 300);
+    }, 3500);
+}
+
+function deconnecter() {
+    fetch('php/deconnexion.php').then(() => window.location.href = 'index.html');
+}
+
+document.getElementById('logoutLink').addEventListener('click', e => {
+    e.preventDefault();
+    deconnecter();
+});
+
+// ========== NAVIGATION ==========
+document.querySelectorAll('.nav-link-custom[data-page]').forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        chargerPage(link.dataset.page);
+    });
+});
+
+function chargerPage(page) {
+    const titles = {
+        dashboard: 'Tableau de bord',
+        'ajouter-offre': 'Ajouter une offre',
+        'mes-offres': 'Mes offres',
+        candidatures: 'Candidatures reçues',
+        evaluations: 'Évaluations des ouvriers',
+        statistiques: 'Mes statistiques',
+        profil: 'Mon profil'
+    };
+    document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
+
+    const fns = {
+        dashboard: chargerDashboard,
+        'ajouter-offre': chargerFormulaireOffre,
+        'mes-offres': chargerMesOffres,
+        candidatures: chargerCandidatures,
+        evaluations: chargerEvaluations,
+        statistiques: chargerStatistiques,
+        profil: chargerProfil
+    };
+    if (fns[page]) fns[page]();
+}
+
+function spinner() {
+    return `<div class="text-center py-5"><div class="spinner-border text-success"></div></div>`;
+}
+
+// ========== DASHBOARD ==========
+function chargerDashboard() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    Promise.all([
+        fetch('php/mes_offres.php').then(r => r.json()).catch(() => []),
+        fetch('php/lister_candidatures.php').then(r => r.json()).catch(() => [])
+    ]).then(([offres, candidatures]) => {
+        offres = Array.isArray(offres) ? offres : [];
+        candidatures = Array.isArray(candidatures) ? candidatures : [];
+
+        const offresActives    = offres.filter(o => new Date(o.date_limitte) >= new Date()).length;
+        const totalCandidatures = candidatures.reduce((s, o) => s + (parseInt(o.nb_candidatures) || 0), 0);
+        const totalAcceptes     = candidatures.reduce((s, o) => s + (parseInt(o.nb_acceptes) || 0), 0);
+
+        document.getElementById('pageContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-mini-card">
+                    <div class="stat-icon green"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-info"><h4>${offres.length}</h4><p>Total offres</p></div>
+                </div>
+                <div class="stat-mini-card blue">
+                    <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info"><h4>${offresActives}</h4><p>Offres actives</p></div>
+                </div>
+                <div class="stat-mini-card orange">
+                    <div class="stat-icon orange"><i class="fas fa-users"></i></div>
+                    <div class="stat-info"><h4>${totalCandidatures}</h4><p>Candidatures reçues</p></div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-icon green"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-info"><h4>${totalAcceptes}</h4><p>Ouvriers acceptés</p></div>
+                </div>
+            </div>
+            <div class="card-dashboard">
+                <h5><i class="fas fa-info-circle text-success me-2"></i> Bienvenue sur votre espace agriculteur</h5>
+                <p class="mt-2 text-muted">Depuis ce tableau de bord vous pouvez :</p>
+                <ul class="mt-1">
+                    <li>Publier des offres de récolte</li>
+                    <li>Consulter et gérer les candidatures des ouvriers</li>
+                    <li>Accepter ou refuser les candidats</li>
+                    <li>Noter les ouvriers après la récolte</li>
+                </ul>
+                <button class="btn-success-custom mt-3" onclick="chargerPage('ajouter-offre')">
+                    <i class="fas fa-plus me-2"></i>Publier une nouvelle offre
+                </button>
+            </div>
+        `;
+    });
+}
+
+// ========== AJOUTER OFFRE ==========
+// BUG CORRIGÉ :
+//  1. On vérifie que fruits et gouvernorats sont des tableaux avant de rendre le formulaire
+//  2. Le listener submit est attaché juste après l'injection du HTML (pas avant)
+//  3. On vérifie le Content-Type avant de parser en JSON pour détecter les erreurs PHP
+//  4. En cas de succès on redirige vers mes-offres proprement avec chargerPage
+function chargerFormulaireOffre() {
+    document.getElementById('pageContent').innerHTML = spinner();
+
+    Promise.all([
+        fetch('php/lister_fruits.php').then(r => r.json()),
+        fetch('php/lister_gouvernorats.php').then(r => r.json())
+    ]).then(([fruits, gouvernorats]) => {
+        if (!Array.isArray(fruits) || !Array.isArray(gouvernorats)) {
+            throw new Error('Données invalides reçues du serveur');
+        }
+
+        document.getElementById('pageContent').innerHTML = `
+            <div class="card-dashboard">
+                <h5><i class="fas fa-plus-circle text-success me-2"></i> Nouvelle offre de récolte</h5>
+                <form id="formAjoutOffre" class="mt-3">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Type de fruit *</label>
+                            <select id="id_type_fruit" class="form-select" required>
+                                <option value="">Sélectionner un fruit</option>
+                                ${fruits.map(f => `<option value="${f.id_type_fruit}">${f.libelle}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gouvernorat *</label>
+                            <select id="id_gouvernorat" class="form-select" required>
+                                <option value="">Sélectionner un gouvernorat</option>
+                                ${gouvernorats.map(g => `<option value="${g.id_gouvernorat}">${g.libelle}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Adresse du site de récolte *</label>
+                            <input type="text" id="adresse" class="form-control" placeholder="Ex : Route de Sfax, Km 5" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date début *</label>
+                            <input type="date" id="date_debut" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date fin *</label>
+                            <input type="date" id="date_fin" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date limite postulation *</label>
+                            <input type="date" id="date_limitte" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre d'ouvriers *</label>
+                            <input type="number" id="nombre_ouvriers" class="form-control" min="1" placeholder="Ex : 5" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prix à la journée (DT) *</label>
+                            <input type="number" step="0.01" id="prix_journee" class="form-control" min="0" placeholder="Ex : 25.00" required>
+                        </div>
+                    </div>
+                    <button type="submit" id="btnSubmitOffre" class="btn-success-custom">
+                        <i class="fas fa-paper-plane me-2"></i>Publier l'offre
+                    </button>
+                </form>
+            </div>
+        `;
+
+        // BUG CORRIGÉ : listener attaché ICI, après injection du HTML
+        document.getElementById('formAjoutOffre').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitOffre');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Publication...';
+
+            const formData = new FormData();
+            formData.append('id_type_fruit',   document.getElementById('id_type_fruit').value);
+            formData.append('id_gouvernorat',   document.getElementById('id_gouvernorat').value);
+            formData.append('adresse',          document.getElementById('adresse').value);
+            formData.append('date_debut',       document.getElementById('date_debut').value);
+            formData.append('date_fin',         document.getElementById('date_fin').value);
+            formData.append('date_limitte',     document.getElementById('date_limitte').value);
+            formData.append('nombre_ouvriers',  document.getElementById('nombre_ouvriers').value);
+            formData.append('prix_journee',     document.getElementById('prix_journee').value);
+
+            try {
+                const res = await fetch('php/ajouter_offre.php', { method: 'POST', body: formData });
+
+                // BUG CORRIGÉ : vérifier le content-type avant JSON.parse
+                const ct = res.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) {
+                    const txt = await res.text();
+                    console.error('Réponse non-JSON :', txt);
+                    throw new Error('Erreur PHP côté serveur – voir la console pour le détail.');
+                }
+
+                const data = await res.json();
+                if (data.success) {
+                    showMessage(data.message || 'Offre publiée avec succès !', false);
+                    // BUG CORRIGÉ : naviguer proprement vers mes-offres via chargerPage
+                    document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
+                    document.querySelector('[data-page="mes-offres"]').classList.add('active');
+                    chargerPage('mes-offres');
+                } else {
+                    showMessage(data.message || 'Erreur lors de la publication', true);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Publier l\'offre';
+                }
+            } catch (err) {
+                console.error('Erreur ajout offre :', err);
+                showMessage('Erreur : ' + err.message, true);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Publier l\'offre';
+            }
+        });
+
+    }).catch(err => {
+        document.getElementById('pageContent').innerHTML = `
+            <div class="card-dashboard">
+                <h5 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Erreur de chargement</h5>
+                <p class="text-muted">${err.message}</p>
+                <p class="text-muted">Vérifiez que <code>php/lister_fruits.php</code> et <code>php/lister_gouvernorats.php</code> sont accessibles.</p>
+                <button class="btn-success-custom mt-2" onclick="chargerPage('ajouter-offre')">
+                    <i class="fas fa-redo me-2"></i>Réessayer
+                </button>
+            </div>`;
+    });
+}
+
+// ========== MES OFFRES ==========
+// BUG CORRIGÉ : la requête SQL dans mes_offres.php utilisait created_at inexistant
+// → le fichier PHP a été corrigé côté serveur
+function chargerMesOffres() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/mes_offres.php')
+        .then(r => r.json())
+        .then(offres => {
+            if (!Array.isArray(offres)) {
+                document.getElementById('pageContent').innerHTML = `
+                    <div class="card-dashboard">
+                        <h5 class="text-danger">Erreur de chargement</h5>
+                        <p>Impossible de récupérer vos offres.</p>
+                    </div>`;
+                return;
+            }
+
+            if (offres.length === 0) {
+                document.getElementById('pageContent').innerHTML = `
+                    <div class="card-dashboard text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Aucune offre publiée pour le moment.</p>
+                        <button class="btn-success-custom mt-2" onclick="chargerPage('ajouter-offre')">
+                            <i class="fas fa-plus me-2"></i>Publier une offre
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            const today = new Date();
+            document.getElementById('pageContent').innerHTML = `
+                <div class="card-dashboard">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5><i class="fas fa-list text-success me-2"></i>Mes offres (${offres.length})</h5>
+                        <button class="btn-success-custom" onclick="chargerPage('ajouter-offre')">
+                            <i class="fas fa-plus me-2"></i>Nouvelle offre
+                        </button>
+                    </div>
+                    ${offres.map(o => `
+                        <div class="offre-card">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <strong>${o.fruit || 'N/A'}</strong> — ${o.gouvernorat || 'N/A'}<br>
+                                    <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>${o.adresse || ''}</small><br>
+                                    <small>Du <strong>${o.date_debut}</strong> au <strong>${o.date_fin}</strong></small><br>
+                                    <small class="text-muted">${o.prix_journee} DT/jour · ${o.nombre_ouvriers} ouvrier(s) · ${o.nb_postulants} candidature(s)</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="badge-${new Date(o.date_limitte) >= today ? 'success' : 'warning'}">
+                                        ${new Date(o.date_limitte) >= today ? '● Active' : '● Expirée'}
+                                    </span><br>
+                                    <small class="text-muted">Limite : ${o.date_limitte}</small>
+                                </div>
+                                <div class="col-md-3 text-end d-flex flex-column gap-2 align-items-end">
+                                    <button class="btn-warning-custom" onclick="voirCandidatures(${o.id_offre})">
+                                        <i class="fas fa-eye me-1"></i>Candidatures
+                                    </button>
+                                    ${parseInt(o.nb_postulants) === 0
+                                        ? `<button style="background:#dc3545;color:white;border:none;padding:5px 15px;border-radius:8px;cursor:pointer;transition:background 0.3s;" onmouseover="this.style.background='#b71c1c'" onmouseout="this.style.background='#dc3545'" onclick="supprimerOffre(${o.id_offre}, this)">
+                                               <i class="fas fa-trash me-1"></i>Supprimer
+                                           </button>`
+                                        : `<small class="text-muted" title="Impossible : des candidatures existent"><i class="fas fa-lock me-1"></i>Non supprimable</small>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        })
+        .catch(() => showMessage('Erreur lors du chargement des offres', true));
+}
+
+function voirCandidatures(idOffre) {
+    window.location.href = `php/gerer_candidatures.php?id_offre=${idOffre}`;
+}
+
+// ========== SUPPRIMER OFFRE ==========
+function supprimerOffre(idOffre, btnEl) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.')) return;
+
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Suppression...';
+
+    const fd = new FormData();
+    fd.append('id_offre', idOffre);
+
+    fetch('php/supprimer_offre.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showMessage(data.message, !data.success);
+            if (data.success) chargerMesOffres();
+            else { btnEl.disabled = false; btnEl.innerHTML = '<i class="fas fa-trash me-1"></i>Supprimer'; }
+        })
+        .catch(() => {
+            showMessage('Erreur de connexion au serveur', true);
+            btnEl.disabled = false;
+            btnEl.innerHTML = '<i class="fas fa-trash me-1"></i>Supprimer';
+        });
+}
+
+// ========== CANDIDATURES ==========
+function chargerCandidatures() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/lister_candidatures.php')
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('pageContent').innerHTML = `<div class="card-dashboard"><p class="text-danger">${data.error}</p></div>`;
+                return;
+            }
+
+            let html = `<div class="card-dashboard"><h5><i class="fas fa-users text-success me-2"></i>Candidatures reçues</h5>`;
+
+            if (!Array.isArray(data) || data.length === 0) {
+                html += `<p class="text-muted mt-3">Aucune offre publiée pour le moment.</p>`;
+            } else {
+                html += `<div class="table-responsive mt-3"><table class="table table-striped">
+                    <thead><tr>
+                        <th>Offre</th><th>Date limite</th><th>Candidatures</th>
+                        <th>Acceptés</th><th>En attente</th><th>Actions</th>
+                    </tr></thead><tbody>`;
+                data.forEach(o => {
+                    html += `<tr>
+                        <td>${o.titre || (o.fruit + ' - ' + o.gouvernorat)}</td>
+                        <td>${new Date(o.date_limitte).toLocaleDateString('fr-FR')}</td>
+                        <td>${o.nb_candidatures}</td>
+                        <td><span class="badge bg-success">${o.nb_acceptes}</span></td>
+                        <td><span class="badge bg-warning text-dark">${o.nb_en_attente}</span></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="voirCandidatures(${o.id_offre})"><i class="fas fa-eye"></i> Voir</button></td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            html += `</div>`;
+            document.getElementById('pageContent').innerHTML = html;
+        })
+        .catch(() => {
+            document.getElementById('pageContent').innerHTML = `<div class="card-dashboard"><p class="text-danger">Impossible de charger les candidatures.</p></div>`;
+        });
+}
+
+// ========== ÉVALUATIONS ==========
+// Logique complète :
+//  - Onglet 1 "À noter"   → ouvriers ACCEPTÉS dont note IS NULL  → formulaire de notation
+//  - Onglet 2 "Déjà notés" → ouvriers déjà notés (note IS NOT NULL) → lecture seule
+function chargerEvaluations() {
+    document.getElementById('pageContent').innerHTML = spinner();
+
+    // On charge en parallèle : ouvriers à noter + évaluations déjà données
+    Promise.all([
+        fetch('php/ouvriers_a_noter.php').then(r => r.json()).catch(() => []),
+        fetch('php/lister_evaluations.php').then(r => r.json()).catch(() => [])
+    ]).then(([aNoter, dejaNotes]) => {
+        aNoter     = Array.isArray(aNoter)     ? aNoter     : [];
+        dejaNotes  = Array.isArray(dejaNotes)  ? dejaNotes  : [];
+
+        // ── helper : rendu d'une étoile cliquable ──
+        function starsInput(idCandidate) {
+            return [1,2,3,4,5].map(i =>
+                `<i class="fas fa-star eval-star" data-val="${i}" data-id="${idCandidate}"
+                    style="font-size:1.6rem;cursor:pointer;color:#ddd;transition:color 0.15s;"
+                    onmouseover="hoverStars(this,${i})"
+                    onmouseout="resetStars(${idCandidate})"
+                    onclick="selectStar(${idCandidate},${i})"></i>`
+            ).join('');
+        }
+
+        // ── Onglet "À noter" ──
+        let htmlANoter = '';
+        if (aNoter.length === 0) {
+            htmlANoter = `<div class="text-center py-4 text-muted">
+                <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                <p>Tous vos ouvriers acceptés ont déjà été notés, ou aucun chantier n'est encore terminé.</p>
+            </div>`;
+        } else {
+            aNoter.forEach(ouv => {
+                const photoHtml = ouv.photo
+                    ? `<img src="data:image/jpeg;base64,${ouv.photo}" class="rounded-circle me-3" style="width:55px;height:55px;object-fit:cover;">`
+                    : `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:55px;height:55px;"><i class="fas fa-user text-muted fa-lg"></i></div>`;
+
+                htmlANoter += `
+                <div class="card mb-3 border-0 shadow-sm" id="card-${ouv.id_candidate}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            ${photoHtml}
+                            <div>
+                                <h6 class="mb-0 fw-bold">${ouv.prenom} ${ouv.nom}</h6>
+                                <small class="text-muted"><i class="fas fa-leaf me-1"></i>${ouv.offre_titre}</small><br>
+                                <small class="text-muted"><i class="fas fa-calendar me-1"></i>${ouv.date_debut} → ${ouv.date_fin}</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Note <span class="text-danger">*</span></label><br>
+                            <div id="stars-${ouv.id_candidate}">${starsInput(ouv.id_candidate)}</div>
+                            <input type="hidden" id="note-val-${ouv.id_candidate}" value="0">
+                            <small class="text-muted" id="note-label-${ouv.id_candidate}">Cliquez pour noter</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Rémunération totale (DT) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" id="remun-${ouv.id_candidate}"
+                                class="form-control" placeholder="Ex : 125.00">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Commentaire <small class="text-muted">(optionnel)</small></label>
+                            <textarea id="comment-${ouv.id_candidate}" class="form-control" rows="2"
+                                placeholder="Votre avis sur le travail de cet ouvrier..."></textarea>
+                        </div>
+
+                        <button class="btn-success-custom" onclick="soumettreNote(${ouv.id_candidate}, this)">
+                            <i class="fas fa-paper-plane me-2"></i>Enregistrer l'évaluation
+                        </button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // ── Onglet "Déjà notés" ──
+        let htmlDejaNotes = '';
+        if (dejaNotes.length === 0) {
+            htmlDejaNotes = `<p class="text-muted mt-3">Aucune évaluation donnée pour le moment.</p>`;
+        } else {
+            dejaNotes.forEach(ev => {
+                const noteNum  = parseInt(ev.note) || 0;
+                const starsHtml = [1,2,3,4,5].map(i =>
+                    `<i class="fas fa-star" style="color:${i <= noteNum ? '#ffc107' : '#ddd'};font-size:1.2rem;"></i>`
+                ).join('');
+                const photoHtml = ev.photo
+                    ? `<img src="data:image/jpeg;base64,${ev.photo}" class="rounded-circle me-3" style="width:50px;height:50px;object-fit:cover;" onerror="this.style.display='none'">`
+                    : `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:50px;height:50px;"><i class="fas fa-user text-muted"></i></div>`;
+
+                htmlDejaNotes += `
+                <div class="card mb-3 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            ${photoHtml}
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">${ev.prenom} ${ev.nom}</h6>
+                                <small class="text-muted">${ev.offre_titre || 'N/A'}</small>
+                            </div>
+                            <div class="text-end">
+                                <div>${starsHtml}</div>
+                                <small class="text-muted">${noteNum}/5</small>
+                            </div>
+                        </div>
+                        ${ev.remuneration ? `<p class="mt-2 mb-1"><i class="fas fa-money-bill-wave text-success me-2"></i><strong>${parseFloat(ev.remuneration).toFixed(2)} DT</strong> versés</p>` : ''}
+                        ${ev.commentaire  ? `<p class="mt-1 mb-1 text-muted"><i class="fas fa-comment me-2"></i>${ev.commentaire}</p>` : ''}
+                        <small class="text-muted"><i class="fas fa-clock me-1"></i>Évalué le ${new Date(ev.date_candidature).toLocaleDateString('fr-FR')}</small>
+                    </div>
+                </div>`;
+            });
+        }
+
+        document.getElementById('pageContent').innerHTML = `
+            <div class="card-dashboard">
+                <h5><i class="fas fa-star text-success me-2"></i>Évaluations des ouvriers</h5>
+                <p class="text-muted mb-3">Notez vos ouvriers acceptés après la récolte et consultez vos évaluations passées.</p>
+
+                <!-- Onglets -->
+                <ul class="nav nav-tabs mb-3" id="evalTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="tab-anoter" onclick="switchEvalTab('anoter')">
+                            <i class="fas fa-edit me-1"></i>À noter
+                            ${aNoter.length > 0 ? `<span class="badge bg-danger ms-1">${aNoter.length}</span>` : ''}
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="tab-dejanotes" onclick="switchEvalTab('dejanotes')">
+                            <i class="fas fa-check-double me-1"></i>Déjà notés
+                            ${dejaNotes.length > 0 ? `<span class="badge bg-success ms-1">${dejaNotes.length}</span>` : ''}
+                        </button>
+                    </li>
+                </ul>
+
+                <div id="panel-anoter">${htmlANoter}</div>
+                <div id="panel-dejanotes" style="display:none;">${htmlDejaNotes}</div>
+            </div>`;
+
+    }).catch(() => {
+        document.getElementById('pageContent').innerHTML = `<div class="card-dashboard"><p class="text-danger">Impossible de charger les évaluations.</p></div>`;
+    });
+}
+
+function switchEvalTab(tab) {
+    document.getElementById('panel-anoter').style.display    = tab === 'anoter'    ? 'block' : 'none';
+    document.getElementById('panel-dejanotes').style.display = tab === 'dejanotes' ? 'block' : 'none';
+    document.getElementById('tab-anoter').classList.toggle('active',    tab === 'anoter');
+    document.getElementById('tab-dejanotes').classList.toggle('active', tab === 'dejanotes');
+}
+
+// ── Gestion des étoiles ──
+const selectedStars = {};
+
+function hoverStars(el, val) {
+    const id = el.dataset.id;
+    document.querySelectorAll(`.eval-star[data-id="${id}"]`).forEach(s => {
+        s.style.color = parseInt(s.dataset.val) <= val ? '#ffc107' : '#ddd';
+    });
+}
+
+function resetStars(id) {
+    const selected = selectedStars[id] || 0;
+    document.querySelectorAll(`.eval-star[data-id="${id}"]`).forEach(s => {
+        s.style.color = parseInt(s.dataset.val) <= selected ? '#ffc107' : '#ddd';
+    });
+}
+
+function selectStar(id, val) {
+    selectedStars[id] = val;
+    document.getElementById(`note-val-${id}`).value = val;
+    document.getElementById(`note-label-${id}`).textContent =
+        ['', '⭐ Très mauvais', '⭐⭐ Mauvais', '⭐⭐⭐ Correct', '⭐⭐⭐⭐ Bien', '⭐⭐⭐⭐⭐ Excellent'][val];
+    resetStars(id);
+}
+
+// ── Soumission de la note ──
+async function soumettreNote(idCandidate, btnEl) {
+    const note        = parseInt(document.getElementById(`note-val-${idCandidate}`).value);
+    const remuneration = document.getElementById(`remun-${idCandidate}`).value.trim();
+    const commentaire = document.getElementById(`comment-${idCandidate}`).value.trim();
+
+    if (!note || note < 1 || note > 5) {
+        showMessage('Veuillez sélectionner une note entre 1 et 5 étoiles', true);
+        return;
+    }
+    if (!remuneration || parseFloat(remuneration) < 0) {
+        showMessage('Veuillez saisir la rémunération totale versée à l\'ouvrier', true);
+        return;
+    }
+
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enregistrement...';
+
+    const fd = new FormData();
+    fd.append('id_candidate', idCandidate);
+    fd.append('note',         note);
+    fd.append('remuneration', remuneration);
+    fd.append('commentaire',  commentaire);
+
+    try {
+        const res  = await fetch('php/noter_ouvrier.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        showMessage(data.message, !data.success);
+        if (data.success) {
+            // Masquer la carte notée avec animation
+            const card = document.getElementById(`card-${idCandidate}`);
+            if (card) { card.style.opacity = '0'; card.style.transition = 'opacity 0.4s'; setTimeout(() => card.remove(), 400); }
+        } else {
+            btnEl.disabled = false;
+            btnEl.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enregistrer l\'évaluation';
+        }
+    } catch {
+        showMessage('Erreur de connexion au serveur', true);
+        btnEl.disabled = false;
+        btnEl.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enregistrer l\'évaluation';
+    }
+}
+
+// ========== STATISTIQUES ==========
+// BUG CORRIGÉ : les graphiques Chart.js se chevauchaient si la page était rechargée.
+// On détruit les instances existantes avant d'en créer de nouvelles.
+let chartInstances = {};
+function destroyCharts() {
+    Object.values(chartInstances).forEach(c => c.destroy());
+    chartInstances = {};
+}
+
+function chargerStatistiques() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    destroyCharts();
+
+    Promise.all([
+        fetch('php/mes_offres.php').then(r => r.json()).catch(() => []),
+        fetch('php/lister_candidatures.php').then(r => r.json()).catch(() => [])
+    ]).then(([offres, candidatures]) => {
+        offres       = Array.isArray(offres) ? offres : [];
+        candidatures = Array.isArray(candidatures) ? candidatures : [];
+
+        const today          = new Date();
+        const offresActives  = offres.filter(o => new Date(o.date_limitte) >= today).length;
+        const offresExpirees = offres.length - offresActives;
+        const totalCands     = candidatures.reduce((s, o) => s + (parseInt(o.nb_candidatures) || 0), 0);
+        const totalAcceptes  = candidatures.reduce((s, o) => s + (parseInt(o.nb_acceptes) || 0), 0);
+        const totalEnAttente = candidatures.reduce((s, o) => s + (parseInt(o.nb_en_attente) || 0), 0);
+
+        // Répartition par fruit
+        const fruitsCount = {};
+        offres.forEach(o => { if (o.fruit) fruitsCount[o.fruit] = (fruitsCount[o.fruit] || 0) + 1; });
+        const fruitsLabels = Object.keys(fruitsCount).length > 0 ? Object.keys(fruitsCount) : ['Aucune donnée'];
+        const fruitsData   = Object.keys(fruitsCount).length > 0 ? Object.values(fruitsCount) : [1];
+
+        document.getElementById('pageContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-mini-card">
+                    <div class="stat-icon green"><i class="fas fa-list"></i></div>
+                    <div class="stat-info"><h4>${offres.length}</h4><p>Total offres</p></div>
+                </div>
+                <div class="stat-mini-card blue">
+                    <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info"><h4>${offresActives}</h4><p>Offres actives</p></div>
+                </div>
+                <div class="stat-mini-card orange">
+                    <div class="stat-icon orange"><i class="fas fa-users"></i></div>
+                    <div class="stat-info"><h4>${totalCands}</h4><p>Candidatures reçues</p></div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-icon green"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-info"><h4>${totalAcceptes}</h4><p>Ouvriers acceptés</p></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card-dashboard">
+                        <h6 class="mb-3"><i class="fas fa-chart-pie text-success me-2"></i>Statut des offres</h6>
+                        <div class="chart-container"><canvas id="chartOffres"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-dashboard">
+                        <h6 class="mb-3"><i class="fas fa-chart-bar text-success me-2"></i>Offres par type de fruit</h6>
+                        <div class="chart-container"><canvas id="chartFruits"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card-dashboard">
+                        <h6 class="mb-3"><i class="fas fa-chart-pie text-success me-2"></i>État des candidatures</h6>
+                        <div class="chart-container"><canvas id="chartCandidatures"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-dashboard text-center py-4">
+                        <i class="fas fa-percentage fa-3x text-success mb-3"></i>
+                        <h3 class="text-success">${totalCands > 0 ? Math.round((totalAcceptes / totalCands) * 100) : 0}%</h3>
+                        <p class="text-muted">Taux d'acceptation</p>
+                        <small class="text-muted">${totalAcceptes} acceptés sur ${totalCands} candidatures</small>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const chartOpts = { responsive: true, maintainAspectRatio: false };
+
+        chartInstances.offres = new Chart(document.getElementById('chartOffres'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Actives', 'Expirées'],
+                datasets: [{ data: [offresActives || 1, offresExpirees || 1], backgroundColor: ['#4caf50', '#bdbdbd'], borderWidth: 0 }]
+            },
+            options: { ...chartOpts, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        chartInstances.fruits = new Chart(document.getElementById('chartFruits'), {
+            type: 'bar',
+            data: {
+                labels: fruitsLabels,
+                datasets: [{ label: 'Offres', data: fruitsData, backgroundColor: '#2e7d32', borderRadius: 8 }]
+            },
+            options: { ...chartOpts, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
+
+        chartInstances.candidatures = new Chart(document.getElementById('chartCandidatures'), {
+            type: 'pie',
+            data: {
+                labels: ['Acceptés', 'En attente'],
+                datasets: [{ data: [totalAcceptes || 1, totalEnAttente || 1], backgroundColor: ['#4caf50', '#ff9800'], borderWidth: 0 }]
+            },
+            options: { ...chartOpts, plugins: { legend: { position: 'bottom' } } }
+        });
+
+    }).catch(() => showMessage('Erreur lors du chargement des statistiques', true));
+}
+
+// ========== PROFIL ==========
+function chargerProfil() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/profil_agriculteur.php')
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('pageContent').innerHTML = `<div class="card-dashboard"><p class="text-danger">${data.error}</p></div>`;
+                return;
+            }
+            document.getElementById('pageContent').innerHTML = `
+                <div class="card-dashboard">
+                    <h5><i class="fas fa-user text-success me-2"></i>Mon profil</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-3 text-center">
+                            <div style="width:100px;height:100px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;margin:auto;">
+                                <i class="fas fa-user fa-3x text-success"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <p><strong>Nom :</strong> ${data.nom || 'N/A'} ${data.prenom || ''}</p>
+                            <p><strong>Email :</strong> ${data.email || 'N/A'}</p>
+                            <p><strong>Pseudo :</strong> ${data.pseudo || 'N/A'}</p>
+                            <p><strong>Adresse :</strong> ${data.adresse || 'Non renseignée'}</p>
+                            <p><strong>CIN :</strong> ${data.cin || 'Non renseigné'}</p>
+                            <a href="php/modifier_profil.php" class="btn-success-custom mt-2 d-inline-block">
+                                <i class="fas fa-edit me-2"></i>Modifier mon profil
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+        })
+        .catch(() => {
+            document.getElementById('pageContent').innerHTML = `
+                <div class="card-dashboard text-center">
+                    <i class="fas fa-user-circle fa-5x text-muted mb-3"></i>
+                    <p class="text-muted">Profil indisponible — vérifiez que <code>php/profil_agriculteur.php</code> existe.</p>
+                </div>`;
+        });
+}
+
+// ========== INIT ==========
+chargerDashboard();
+</script>
+</body>
+</html>

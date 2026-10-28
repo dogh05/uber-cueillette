@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber-Cueillette - Mettez en relation agriculteurs et ouvriers</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; overflow-x: hidden; }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        .navbar-brand { font-size: 1.5rem; font-weight: bold; color: white !important; }
+        .navbar-brand i { margin-right: 10px; }
+        .nav-link { color: white !important; margin: 0 10px; transition: all 0.3s; }
+        .nav-link:hover { transform: translateY(-2px); }
+        .btn-inscription { background: #ff9800; border-radius: 50px; padding: 8px 25px !important; }
+        .btn-dashboard { background: #4caf50; border-radius: 50px; padding: 8px 25px !important; margin-left: 10px; }
+        #userActions { display: flex; align-items: center; gap: 10px; }
+        .user-greeting { color: white; margin-right: 10px; }
+
+        /* ===== HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, #1b5e20, #4caf50);
+            color: white;
+            min-height: 92vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+        }
+        .hero h1 { font-size: 3rem; font-weight: 700; margin-bottom: 20px; }
+        .hero .lead { font-size: 1.2rem; margin-bottom: 30px; }
+
+        /* ===== STATS SECTION ===== */
+        .stats-section {
+            background: #fff;
+            padding: 70px 0;
+        }
+        .stat-counter-card {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 20px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            border-bottom: 4px solid #2e7d32;
+        }
+        .stat-counter-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
+        .stat-counter-card.orange { border-bottom-color: #ff9800; }
+        .stat-counter-card.blue   { border-bottom-color: #2196f3; }
+        .stat-counter-card.purple { border-bottom-color: #9c27b0; }
+        .stat-counter-card .icon-wrap {
+            width: 70px; height: 70px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px; font-size: 1.8rem;
+        }
+        .icon-wrap.green  { background: #e8f5e9; color: #2e7d32; }
+        .icon-wrap.orange { background: #fff3e0; color: #ff9800; }
+        .icon-wrap.blue   { background: #e3f2fd; color: #2196f3; }
+        .icon-wrap.purple { background: #f3e5f5; color: #9c27b0; }
+        .stat-counter { font-size: 2.8rem; font-weight: 700; color: #333; }
+        .stat-counter-card p { color: #666; font-size: 0.95rem; margin: 5px 0 0; }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-it-works { background: #f8f9fa; padding: 70px 0; }
+        .step-card {
+            background: white; border-radius: 20px; padding: 35px 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08); transition: all 0.3s;
+            text-align: center; position: relative;
+        }
+        .step-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.12); }
+        .step-number {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 3rem; font-weight: 800; color: rgba(46,125,50,0.08);
+        }
+        .step-icon { font-size: 2.5rem; color: #2e7d32; margin-bottom: 20px; }
+
+        /* ===== OFFRES ===== */
+        #offres { padding: 70px 0; background: #f1f8e9; }
+        .section-title { font-size: 2rem; font-weight: 700; color: #1b5e20; margin-bottom: 8px; }
+        .section-subtitle { color: #666; margin-bottom: 40px; }
+        .offre-card {
+            background: white; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); transition: all 0.3s; margin-bottom: 30px;
+        }
+        .offre-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+        .offre-header { background: linear-gradient(135deg, #2e7d32, #4caf50); color: white; padding: 15px 20px; }
+        .offre-body { padding: 20px; }
+        .offre-info { margin: 10px 0; display: flex; align-items: center; gap: 10px; }
+        .offre-info i { color: #2e7d32; width: 25px; }
+        .prix { font-size: 1.5rem; font-weight: bold; color: #ff9800; margin: 15px 0; }
+        .btn-postuler {
+            background: #ff9800; color: white; border: none;
+            padding: 10px 20px; border-radius: 50px; width: 100%; transition: all 0.3s;
+        }
+        .btn-postuler:hover { background: #f57c00; transform: scale(1.02); }
+
+        /* Toggle offres button */
+        .btn-voir-offres {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white; border: none; padding: 14px 40px;
+            border-radius: 50px; font-size: 1.1rem; font-weight: 600;
+            box-shadow: 0 5px 20px rgba(255,152,0,0.4);
+            transition: all 0.3s; cursor: pointer;
+        }
+        .btn-voir-offres:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,152,0,0.5); }
+
+        .filtres-card {
+            background: white; border-radius: 15px; padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08); margin-bottom: 30px;
+        }
+        .btn-vert {
+            background: #2e7d32; color: white; border-radius: 50px;
+            padding: 10px 25px; border: none; transition: all 0.3s;
+        }
+        .btn-vert:hover { background: #1b5e20; transform: scale(1.02); }
+
+        /* Offres panel hidden by default */
+        #offresPanel { display: none; }
+        #offresPanel.visible { display: block; animation: fadeInDown 0.4s ease; }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== TUNISIE ===== */
+        .tunisie-section {
+            background: linear-gradient(160deg, #1b5e20 0%, #2e7d32 40%, #1b5e20 100%);
+            padding: 90px 0;
+            color: white;
+            overflow: hidden;
+        }
+        .tunisie-inner { position: relative; }
+        .tunisie-img-wrap { position: relative; display: inline-block; width: 100%; }
+        .tunisie-img-wrap img { width: 100%; max-height: 380px; object-fit: cover; }
+        .tunisie-badge {
+            position: absolute; bottom: -14px; right: -14px;
+            background: #ff9800; color: white; font-weight: 700;
+            padding: 10px 22px; border-radius: 50px;
+            font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .tunisie-tag {
+            display: inline-block; background: rgba(255,255,255,0.15);
+            color: white; padding: 5px 16px; border-radius: 50px;
+            font-size: 0.85rem; font-weight: 500; margin-bottom: 18px;
+            backdrop-filter: blur(4px);
+        }
+        .tunisie-title {
+            font-size: 1.9rem; font-weight: 700; color: white;
+            line-height: 1.3; margin-bottom: 20px;
+        }
+        .tunisie-text {
+            color: rgba(255,255,255,0.85); line-height: 1.85;
+            margin-bottom: 16px; font-size: 0.97rem;
+        }
+        .tunisie-highlights {
+            display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px;
+        }
+        .highlight-item {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 18px; border-radius: 50px; font-size: 0.85rem;
+            color: white; backdrop-filter: blur(4px); transition: all 0.3s;
+        }
+        .highlight-item:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+        .highlight-item i { color: #a5d6a7; font-size: 1rem; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ccc;
+            padding: 60px 0 0;
+        }
+        footer h5 { color: white; font-weight: 600; margin-bottom: 20px; }
+        footer .footer-brand { font-size: 1.6rem; font-weight: 700; color: white; }
+        footer .footer-desc { color: #aaa; font-size: 0.9rem; line-height: 1.8; }
+        .footer-link {
+            color: #aaa; text-decoration: none; display: block;
+            margin-bottom: 8px; transition: color 0.3s;
+        }
+        .footer-link:hover { color: #4caf50; }
+        .footer-social a {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 38px; height: 38px; border-radius: 50%;
+            background: rgba(255,255,255,0.08); color: #ccc;
+            margin-right: 8px; transition: all 0.3s; text-decoration: none;
+        }
+        .footer-social a:hover { background: #2e7d32; color: white; transform: translateY(-3px); }
+        .footer-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; color: #aaa; }
+        .footer-contact-item i { color: #4caf50; width: 20px; }
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 20px 0; margin-top: 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .footer-bottom p { margin: 0; font-size: 0.85rem; color: #777; }
+        .footer-bottom a { color: #4caf50; text-decoration: none; }
+
+        /* ===== MISC ===== */
+        .alert-floating {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            min-width: 300px; animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        @keyframes slideIn  { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .hero { text-align: center; }
+            #userActions { flex-direction: column; align-items: flex-start; }
+            .footer-bottom { justify-content: center; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">
+            <i class="fas fa-tractor"></i> Uber-Cueillette
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#accueil">Accueil</a></li>
+                <li class="nav-item"><a class="nav-link" href="#comment-ca-marche">Comment ça marche</a></li>
+                <li class="nav-item"><a class="nav-link" href="#offres">Offres</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                <li class="nav-item" id="navConnexion">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#connexionModal">Connexion</a>
+                </li>
+                <li class="nav-item" id="navInscription">
+                    <a class="nav-link btn-inscription" href="#" data-bs-toggle="modal" data-bs-target="#inscriptionModal">Inscription</a>
+                </li>
+            </ul>
+            <div id="userActions" class="ms-3"></div>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="accueil" class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1>La récolte n'a jamais été aussi simple</h1>
+                <p class="lead">Uber-Cueillette met en relation agriculteurs et ouvriers qualifiés pour les saisons de récolte en Tunisie.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <button class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#inscriptionModal">
+                        <i class="fas fa-user-plus me-2"></i>Inscription gratuite
+                    </button>
+                    <a href="#offres" class="btn btn-outline-light btn-lg" onclick="afficherOffres()">
+                        <i class="fas fa-search me-2"></i>Voir les offres
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-4 mt-lg-0">
+                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600" alt="Récolte" class="img-fluid rounded-4 shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SECTION OFFRES ===== -->
+<section id="offres" class="py-5" style="background:#f1f8e9;">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="section-title">Offres de récolte disponibles</h2>
+            <p class="section-subtitle">Consultez les offres en cours et postulez directement</p>
+            <button class="btn-voir-offres" id="btnToggleOffres" onclick="afficherOffres()">
+                <i class="fas fa-eye me-2"></i>Voir toutes les offres
+            </button>
+        </div>
+        <div id="offresPanel">
+            <div class="filtres-card">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <select id="filtreFruit" class="form-select">
+                            <option value="">Tous les fruits</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="filtreGouvernorat" class="form-select">
+                            <option value="">Tous les gouvernorats</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button id="btnFiltrer" class="btn btn-vert w-100">
+                            <i class="fas fa-filter me-2"></i>Filtrer
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="offresContainer" class="row">
+                <div class="col-12 text-center py-4">
+                    <div class="spinner-border text-success" role="status"></div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-outline-secondary btn-sm" onclick="cacherOffres()">
+                    <i class="fas fa-eye-slash me-2"></i>Masquer les offres
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== STATISTIQUES ===== -->
+<section class="stats-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Uber-Cueillette en chiffres</h2>
+            <p class="section-subtitle">La plateforme qui fait confiance à ses utilisateurs</p>
+        </div>
+        <div class="row g-4" id="statsRow">
+            <div class="col-12 text-center py-3" id="statsLoading">
+                <div class="spinner-border text-success" role="status"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== TUNISIE PARAGRAPH ===== -->
+<section class="tunisie-section">
+    <div class="container">
+        <div class="tunisie-inner">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-5">
+                    <div class="tunisie-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=700"
+                             alt="Champs tunisiens" class="img-fluid rounded-4 shadow-lg">
+                        <div class="tunisie-badge">
+                            <i class="fas fa-map-marker-alt me-2"></i>Tunisie
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <span class="tunisie-tag">🇹🇳 Notre terre, notre fierté</span>
+                    <h2 class="tunisie-title">La Tunisie, terre de récoltes depuis des siècles</h2>
+                    <p class="tunisie-text">
+                        Berceau de l'olivier et grenier de l'empire romain, la Tunisie cultive une relation
+                        intime avec la terre depuis plus de trois millénaires. Des vastes oliveraies du Sahel
+                        aux vergers de Beja, des vignobles de Grombalia aux champs d'agrumes de Nabeul,
+                        chaque région porte en elle un savoir-faire agricole unique, transmis de génération
+                        en génération.
+                    </p>
+                    <p class="tunisie-text">
+                        Aujourd'hui, ce patrimoine vivant repose sur des milliers d'agriculteurs passionnés
+                        et d'ouvriers dévoués qui, chaque saison, s'unissent pour faire vivre cette terre
+                        généreuse. <strong>Uber-Cueillette</strong> est né de cette réalité — pour
+                        simplifier ces rencontres, valoriser ce travail essentiel et donner à chaque
+                        récolte la main-d'œuvre qu'elle mérite.
+                    </p>
+                    <div class="tunisie-highlights">
+                        <div class="highlight-item">
+                            <i class="fas fa-seedling"></i>
+                            <span>1,8 million d'hectares cultivés</span>
+                        </div>
+                        <div class="highlight-item">
+                            <i class="fas fa-leaf"></i>
+                            <span>2ème producteur mondial d'huile d'olive</span>
+                        </div>
+                        <div class="highlight-item">
+                            <i class="fas fa-sun"></i>
+                            <span>300 jours de soleil par an</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== COMMENT ÇA MARCHE ===== -->
+<section id="comment-ca-marche" class="how-it-works">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Comment ça marche ?</h2>
+            <p class="section-subtitle">Simple, rapide et efficace</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                    <h5>Créez votre compte</h5>
+                    <p class="text-muted">Inscrivez-vous en tant qu'agriculteur ou ouvrier en quelques minutes.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon"><i class="fas fa-search"></i></div>
+                    <h5>Trouvez ou publiez une offre</h5>
+                    <p class="text-muted">Agriculteurs : publiez vos besoins. Ouvriers : consultez les offres disponibles.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon"><i class="fas fa-handshake"></i></div>
+                    <h5>Travaillez ensemble</h5>
+                    <p class="text-muted">L'agriculteur sélectionne ses ouvriers et la récolte commence !</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== MODAL CONNEXION ===== -->
+<div class="modal fade" id="connexionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-sign-in-alt me-2"></i> Connexion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formConnexion">
+                    <div class="mb-3">
+                        <label class="form-label">Pseudo</label>
+                        <input type="text" id="loginPseudo" class="form-control" placeholder="Votre pseudo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Se connecter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL INSCRIPTION ===== -->
+<div class="modal fade" id="inscriptionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-white" id="inscriptionModalHeader" style="background:linear-gradient(135deg,#1b5e20,#2e7d32);">
+                <div>
+                    <h5 class="modal-title mb-0" id="inscriptionModalTitle">
+                        <i class="fas fa-user-plus me-2"></i>Inscription
+                    </h5>
+                    <small id="inscriptionModalSubtitle" class="opacity-75">Choisissez votre profil ci-dessous</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+
+                <!-- Sélecteur de rôle visuel -->
+                <div class="d-flex border-bottom" id="roleSelector">
+                    <button id="tabBtnAgriculteur"
+                        class="role-tab-btn active"
+                        style="flex:1;padding:18px 10px;border:none;background:#e8f5e9;border-right:1px solid #dee2e6;transition:all 0.25s;cursor:pointer;"
+                        onclick="switchInscriptionTab('agriculteur')">
+                        <div style="font-size:2rem;">🌾</div>
+                        <div style="font-weight:700;color:#1b5e20;font-size:1rem;margin-top:5px;">Agriculteur</div>
+                        <div style="font-size:0.78rem;color:#555;margin-top:3px;">Je publie des offres de récolte</div>
+                    </button>
+                    <button id="tabBtnOuvrier"
+                        class="role-tab-btn"
+                        style="flex:1;padding:18px 10px;border:none;background:#fff3e0;transition:all 0.25s;cursor:pointer;"
+                        onclick="switchInscriptionTab('ouvrier')">
+                        <div style="font-size:2rem;">👷</div>
+                        <div style="font-weight:700;color:#e65100;font-size:1rem;margin-top:5px;">Ouvrier agricole</div>
+                        <div style="font-size:0.78rem;color:#555;margin-top:3px;">Je cherche du travail de récolte</div>
+                    </button>
+                </div>
+
+                <div class="px-4 pb-4 pt-3">
+
+                    <!-- ===== FORMULAIRE AGRICULTEUR ===== -->
+                    <div id="panelAgriculteur">
+                        <div class="alert d-flex align-items-center gap-3 mb-3"
+                             style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:12px 16px;">
+                            <span style="font-size:1.6rem;">🌾</span>
+                            <div>
+                                <strong style="color:#1b5e20;">Vous êtes agriculteur</strong><br>
+                                <small class="text-muted">Créez votre compte pour publier des offres et recruter des ouvriers pour votre récolte.</small>
+                            </div>
+                        </div>
+                        <form id="formAgriculteur">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nom</label>
+                                    <input type="text" id="agri_nom" class="form-control" placeholder="Votre nom" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Prénom</label>
+                                    <input type="text" id="agri_prenom" class="form-control" placeholder="Votre prénom" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">CIN <small class="text-muted">(8 chiffres)</small></label>
+                                    <input type="text" id="agri_cin" class="form-control" maxlength="8" placeholder="12345678" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" id="agri_email" class="form-control" placeholder="exemple@email.com" required>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Adresse personnelle</label>
+                                    <textarea id="agri_adresse" class="form-control" rows="2" placeholder="Votre adresse complète" required></textarea>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Pseudo <small class="text-muted">(lettres uniquement)</small></label>
+                                    <input type="text" id="agri_pseudo" class="form-control" placeholder="jeanDupont" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mot de passe</label>
+                                    <input type="password" id="agri_password" class="form-control" placeholder="Min 8 cars, finit par $ ou #" required>
+                                    <small class="text-muted">8 caractères minimum, se terminant par $ ou #</small>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn w-100 text-white fw-semibold"
+                                style="background:linear-gradient(135deg,#1b5e20,#2e7d32);border-radius:10px;padding:12px;">
+                                <i class="fas fa-seedling me-2"></i>Créer mon compte Agriculteur
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- ===== FORMULAIRE OUVRIER ===== -->
+                    <div id="panelOuvrier" style="display:none;">
+                        <div class="alert d-flex align-items-center gap-3 mb-3"
+                             style="background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;padding:12px 16px;">
+                            <span style="font-size:1.6rem;">👷</span>
+                            <div>
+                                <strong style="color:#e65100;">Vous êtes ouvrier agricole</strong><br>
+                                <small class="text-muted">Créez votre compte pour consulter les offres et postuler aux récoltes disponibles.</small>
+                            </div>
+                        </div>
+                        <form id="formOuvrier" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nom</label>
+                                    <input type="text" id="ouv_nom" class="form-control" placeholder="Votre nom" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Prénom</label>
+                                    <input type="text" id="ouv_prenom" class="form-control" placeholder="Votre prénom" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">CIN <small class="text-muted">(8 chiffres)</small></label>
+                                    <input type="text" id="ouv_cin" class="form-control" maxlength="8" placeholder="12345678" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" id="ouv_email" class="form-control" placeholder="exemple@email.com" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Photo d'identité</label>
+                                    <input type="file" id="ouv_photo" class="form-control" accept="image/jpeg,image/png,image/jpg,image/gif" required>
+                                    <small class="text-muted">JPEG, PNG ou GIF (max 2MB)</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Pseudo <small class="text-muted">(lettres uniquement)</small></label>
+                                    <input type="text" id="ouv_pseudo" class="form-control" placeholder="jeanDupont" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mot de passe</label>
+                                    <input type="password" id="ouv_password" class="form-control" placeholder="Min 8 cars, finit par $ ou #" required>
+                                    <small class="text-muted">8 caractères minimum, se terminant par $ ou #</small>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Description <small class="text-muted">(expérience, niveau éducatif)</small></label>
+                                    <textarea id="ouv_description" class="form-control" rows="3" placeholder="Décrivez votre expérience agricole..." required></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn w-100 text-white fw-semibold"
+                                style="background:linear-gradient(135deg,#e65100,#ff9800);border-radius:10px;padding:12px;">
+                                <i class="fas fa-hard-hat me-2"></i>Créer mon compte Ouvrier
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer id="contact">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Branding -->
+            <div class="col-lg-4">
+                <div class="footer-brand mb-3"><i class="fas fa-tractor me-2 text-success"></i>Uber-Cueillette</div>
+                <p class="footer-desc">La plateforme tunisienne qui connecte agriculteurs et ouvriers pour des saisons de récolte réussies. Simple, rapide et fiable.</p>
+                <div class="footer-social mt-3">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <!-- Liens rapides -->
+            <div class="col-sm-6 col-lg-2">
+                <h5>Navigation</h5>
+                <a href="#accueil" class="footer-link">Accueil</a>
+                <a href="#comment-ca-marche" class="footer-link">Comment ça marche</a>
+                <a href="#offres" class="footer-link" onclick="afficherOffres()">Offres de récolte</a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#connexionModal" class="footer-link">Connexion</a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#inscriptionModal" class="footer-link">Inscription</a>
+            </div>
+            <!-- Services -->
+            <div class="col-sm-6 col-lg-2">
+                <h5>Services</h5>
+                <a href="#" class="footer-link">Pour les agriculteurs</a>
+                <a href="#" class="footer-link">Pour les ouvriers</a>
+                <a href="#" class="footer-link">Publier une offre</a>
+                <a href="#" class="footer-link">Consulter les offres</a>
+                <a href="#" class="footer-link">Évaluations</a>
+            </div>
+            <!-- Contact -->
+            <div class="col-lg-4">
+                <h5>Nous contacter</h5>
+                <div class="footer-contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Av. de la République, Tunis 1000, Tunisie</span>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+216 71 000 000</span>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>contact@uber-cueillette.tn</span>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Lun–Ven : 8h00 – 17h00</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Uber-Cueillette. Tous droits réservés.</p>
+            <p>
+                <a href="#">Politique de confidentialité</a> &nbsp;·&nbsp;
+                <a href="#">Conditions d'utilisation</a> &nbsp;·&nbsp;
+                <a href="#">Mentions légales</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let currentUser = null;
+let offresChargees = false; // évite de recharger si déjà fait
+
+// ===== TOGGLE OFFRES =====
+function afficherOffres() {
+    const panel = document.getElementById('offresPanel');
+    const btn   = document.getElementById('btnToggleOffres');
+    panel.classList.add('visible');
+    btn.innerHTML = '<i class="fas fa-sync-alt fa-spin me-2"></i>Chargement...';
+    btn.disabled = true;
+
+    if (!offresChargees) {
+        chargerFiltres();
+        chargerOffres();
+        offresChargees = true;
+    }
+
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check me-2"></i>Offres affichées';
+        btn.style.background = 'linear-gradient(135deg,#2e7d32,#4caf50)';
+    }, 800);
+}
+
+function cacherOffres() {
+    const panel = document.getElementById('offresPanel');
+    const btn   = document.getElementById('btnToggleOffres');
+    panel.classList.remove('visible');
+    btn.innerHTML = '<i class="fas fa-eye me-2"></i>Voir toutes les offres';
+    btn.style.background = '';
+    btn.disabled = false;
+}
+
+// ===== STATISTIQUES RÉELLES =====
+function animateCounter(el, target) {
+    if (target === 0) { el.textContent = '0'; return; }
+    const duration = 1600;
+    const step = Math.ceil(target / (duration / 16));
+    let current = 0;
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = current.toLocaleString('fr-FR');
+    }, 16);
+}
+
+function chargerStatistiques() {
+    fetch('php/statistiques.php')
+        .then(r => r.json())
+        .then(data => {
+            const row = document.getElementById('statsRow');
+            if (!row) return;
+
+            const cards = [
+                { val: data.nb_ouvriers,     label: 'Ouvriers inscrits',    icon: 'fa-users',     cls: '' },
+                { val: data.nb_agriculteurs, label: 'Agriculteurs inscrits', icon: 'fa-tractor',   cls: 'orange' },
+                { val: data.nb_offres,       label: 'Offres publiées',       icon: 'fa-briefcase', cls: 'blue' },
+                { val: data.nb_missions,     label: 'Missions réalisées',    icon: 'fa-handshake', cls: 'purple' }
+            ];
+
+            row.innerHTML = cards.map(c => `
+                <div class="col-6 col-md-3">
+                    <div class="stat-counter-card ${c.cls}">
+                        <div class="icon-wrap ${c.cls || 'green'} mx-auto mb-3">
+                            <i class="fas ${c.icon}"></i>
+                        </div>
+                        <div class="stat-counter" data-target="${c.val}">0</div>
+                        <p>${c.label}</p>
+                    </div>
+                </div>`).join('');
+
+            // Observer pour déclencher l'animation quand la section est visible
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        row.querySelectorAll('.stat-counter').forEach(el => {
+                            animateCounter(el, parseInt(el.dataset.target));
+                        });
+                        observer.disconnect();
+                    }
+                });
+            }, { threshold: 0.3 });
+
+            const section = document.querySelector('.stats-section');
+            if (section) observer.observe(section);
+        })
+        .catch(() => {
+            // En cas d'erreur réseau, afficher des tirets
+            const row = document.getElementById('statsRow');
+            if (row) row.innerHTML = `
+                <div class="col-12 text-center text-muted">
+                    <i class="fas fa-exclamation-circle me-2"></i>Statistiques indisponibles
+                </div>`;
+        });
+}
+
+// ===== NAVBAR =====
+function updateNavbar() {
+    fetch('php/verifier_session.php')
+        .then(r => r.json())
+        .then(data => {
+            currentUser = data;
+            const navC = document.getElementById('navConnexion');
+            const navI = document.getElementById('navInscription');
+            const ua   = document.getElementById('userActions');
+            if (data.connecte) {
+                if (navC) navC.style.display = 'none';
+                if (navI) navI.style.display = 'none';
+                const url   = data.type === 'agriculteur' ? 'dashboard_agriculteur.html' : 'dashboard_ouvrier.html';
+                const label = data.type === 'agriculteur' ? '🌾 Dashboard Agriculteur' : '👷 Dashboard Ouvrier';
+                ua.innerHTML = `
+                    <span class="user-greeting">Bonjour ${data.pseudo}</span>
+                    <a href="${url}" class="btn btn-dashboard"><i class="fas fa-tachometer-alt"></i> ${label}</a>
+                    <button class="btn btn-danger" onclick="deconnexion()" style="border-radius:50px;padding:8px 20px;">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>`;
+            } else {
+                if (navC) navC.style.display = 'block';
+                if (navI) navI.style.display = 'block';
+                ua.innerHTML = '';
+            }
+        })
+        .catch(() => {});
+}
+
+function deconnexion() {
+    fetch('php/deconnexion.php').then(() => window.location.reload());
+}
+
+// ===== FILTRES =====
+function chargerFiltres() {
+    fetch('php/lister_gouvernorats.php').then(r => r.json()).then(data => {
+        const sel = document.getElementById('filtreGouvernorat');
+        if (sel) data.forEach(g => { const o = document.createElement('option'); o.value = g.libelle; o.textContent = g.libelle; sel.appendChild(o); });
+    }).catch(() => {});
+
+    fetch('php/lister_fruits.php').then(r => r.json()).then(data => {
+        const sel = document.getElementById('filtreFruit');
+        if (sel) data.forEach(f => { const o = document.createElement('option'); o.value = f.libelle; o.textContent = f.libelle; sel.appendChild(o); });
+    }).catch(() => {});
+}
+
+// ===== OFFRES =====
+function chargerOffres() {
+    const fruit       = document.getElementById('filtreFruit')?.value || '';
+    const gouvernorat = document.getElementById('filtreGouvernorat')?.value || '';
+    let url = 'php/lister_offres.php?';
+    if (fruit)       url += `fruit=${encodeURIComponent(fruit)}&`;
+    if (gouvernorat) url += `gouvernorat=${encodeURIComponent(gouvernorat)}`;
+
+    const container = document.getElementById('offresContainer');
+    if (container) container.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border text-success"></div></div>';
+
+    fetch(url)
+        .then(r => r.json())
+        .then(offres => {
+            if (!container) return;
+            if (!offres.length) {
+                container.innerHTML = '<div class="col-12 text-center"><p class="text-muted py-3">Aucune offre disponible pour le moment.</p></div>';
+                return;
+            }
+            container.innerHTML = '';
+            offres.forEach(offre => {
+                container.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="offre-card">
+                            <div class="offre-header">
+                                <h5 class="mb-0">${offre.fruit || 'Fruit'}</h5>
+                                <small><i class="fas fa-map-marker-alt me-1"></i>${offre.gouvernorat || ''}</small>
+                            </div>
+                            <div class="offre-body">
+                                <div class="offre-info"><i class="fas fa-location-dot"></i><span>${offre.adresse || 'N/A'}</span></div>
+                                <div class="offre-info"><i class="fas fa-calendar"></i><span>Du ${offre.date_debut} au ${offre.date_fin}</span></div>
+                                <div class="offre-info"><i class="fas fa-users"></i><span>${offre.nombre_ouvriers} ouvrier(s)</span></div>
+                                <div class="prix">${offre.prix_journee} DT / jour</div>
+                                <button class="btn-postuler" onclick="postuler(${offre.id_offre})">
+                                    <i class="fas fa-hand-paper me-2"></i>Postuler
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        })
+        .catch(() => {
+            if (container) container.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Erreur lors du chargement des offres.</p></div>';
+        });
+}
+
+// ===== POSTULER =====
+function postuler(idOffre) {
+    fetch('php/verifier_session.php').then(r => r.json()).then(data => {
+        if (!data.connecte) {
+            showMessage('Veuillez vous connecter pour postuler', true);
+            new bootstrap.Modal(document.getElementById('connexionModal')).show();
+        } else if (data.type !== 'ouvrier') {
+            showMessage('Seuls les ouvriers peuvent postuler aux offres', true);
+        } else {
+            fetch('php/postuler.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id_offre=${idOffre}`
+            })
+            .then(r => r.json())
+            .then(result => {
+                showMessage(result.message || (result.success ? 'Candidature envoyée !' : 'Erreur'), !result.success);
+                if (result.success) chargerOffres();
+            })
+            .catch(() => showMessage('Erreur de connexion au serveur', true));
+        }
+    });
+}
+
+// ===== INSCRIPTION AGRICULTEUR =====
+document.getElementById('formAgriculteur')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nom = document.getElementById('agri_nom').value.trim();
+    const prenom = document.getElementById('agri_prenom').value.trim();
+    const cin = document.getElementById('agri_cin').value.trim();
+    const email = document.getElementById('agri_email').value.trim();
+    const adresse = document.getElementById('agri_adresse').value.trim();
+    const pseudo = document.getElementById('agri_pseudo').value.trim();
+    const password = document.getElementById('agri_password').value;
+
+    if (!nom || !prenom || !cin || !email || !adresse || !pseudo || !password) { showMessage('Veuillez remplir tous les champs', true); return; }
+    if (!/^\d{8}$/.test(cin)) { showMessage('CIN invalide : 8 chiffres exactement', true); return; }
+    if (!email.includes('@') || !email.includes('.')) { showMessage('Email invalide', true); return; }
+    if (!/^[A-Za-z]+$/.test(pseudo)) { showMessage('Pseudo invalide : lettres uniquement', true); return; }
+    if (!/^.{8,}[$#]$/.test(password)) { showMessage('Mot de passe invalide : 8 caractères minimum, se terminant par $ ou #', true); return; }
+
+    const fd = new FormData();
+    fd.append('type','agriculteur'); fd.append('nom',nom); fd.append('prenom',prenom);
+    fd.append('cin',cin); fd.append('email',email); fd.append('adresse',adresse);
+    fd.append('pseudo',pseudo); fd.append('password',password);
+    try {
+        const r = await fetch('php/inscription.php', { method:'POST', body:fd });
+        const d = await r.json();
+        showMessage(d.message || (d.success ? 'Inscription réussie !' : 'Erreur'), !d.success);
+        if (d.success) { bootstrap.Modal.getInstance(document.getElementById('inscriptionModal'))?.hide(); e.target.reset(); }
+    } catch { showMessage('Erreur de connexion', true); }
+});
+
+// ===== INSCRIPTION OUVRIER =====
+document.getElementById('formOuvrier')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nom = document.getElementById('ouv_nom').value.trim();
+    const prenom = document.getElementById('ouv_prenom').value.trim();
+    const cin = document.getElementById('ouv_cin').value.trim();
+    const email = document.getElementById('ouv_email').value.trim();
+    const pseudo = document.getElementById('ouv_pseudo').value.trim();
+    const password = document.getElementById('ouv_password').value;
+    const description = document.getElementById('ouv_description').value.trim();
+    const photo = document.getElementById('ouv_photo').files[0];
+
+    if (!nom || !prenom || !cin || !email || !pseudo || !password || !description) { showMessage('Veuillez remplir tous les champs', true); return; }
+    if (!/^\d{8}$/.test(cin)) { showMessage('CIN invalide : 8 chiffres exactement', true); return; }
+    if (!email.includes('@')) { showMessage('Email invalide', true); return; }
+    if (!/^[A-Za-z]+$/.test(pseudo)) { showMessage('Pseudo invalide : lettres uniquement', true); return; }
+    if (!/^.{8,}[$#]$/.test(password)) { showMessage('Mot de passe invalide : 8 caractères minimum, se terminant par $ ou #', true); return; }
+    if (!photo) { showMessage('Veuillez sélectionner une photo', true); return; }
+    if (!['image/jpeg','image/png','image/jpg','image/gif'].includes(photo.type)) { showMessage('Format de photo non supporté', true); return; }
+    if (photo.size > 2 * 1024 * 1024) { showMessage('Photo trop grande (max 2MB)', true); return; }
+
+    const fd = new FormData();
+    fd.append('type','ouvrier'); fd.append('nom',nom); fd.append('prenom',prenom);
+    fd.append('cin',cin); fd.append('email',email); fd.append('pseudo',pseudo);
+    fd.append('password',password); fd.append('description',description); fd.append('photo',photo);
+    try {
+        const r = await fetch('php/inscription.php', { method:'POST', body:fd });
+        const d = await r.json();
+        showMessage(d.message || (d.success ? 'Inscription réussie !' : 'Erreur'), !d.success);
+        if (d.success) { bootstrap.Modal.getInstance(document.getElementById('inscriptionModal'))?.hide(); e.target.reset(); }
+    } catch { showMessage('Erreur de connexion', true); }
+});
+
+// ===== CONNEXION =====
+document.getElementById('formConnexion')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pseudo   = document.getElementById('loginPseudo').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!pseudo || !password) { showMessage('Veuillez remplir tous les champs', true); return; }
+    const fd = new FormData();
+    fd.append('pseudo',pseudo); fd.append('password',password);
+    try {
+        const r = await fetch('php/authentification.php', { method:'POST', body:fd });
+        const d = await r.json();
+        if (d.success) { showMessage('Connexion réussie ! Redirection...', false); setTimeout(() => window.location.href = d.redirect, 1500); }
+        else showMessage(d.message || 'Pseudo ou mot de passe incorrect', true);
+    } catch { showMessage('Erreur de connexion au serveur', true); }
+});
+
+// ===== UTILS =====
+function showMessage(message, isError = true) {
+    const div = document.createElement('div');
+    div.className = `alert alert-${isError ? 'danger' : 'success'} alert-floating`;
+    div.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'} me-2"></i>${message}`;
+    document.body.appendChild(div);
+    setTimeout(() => { div.style.animation = 'slideOut 0.3s ease'; setTimeout(() => div.remove(), 300); }, 4000);
+}
+
+// ===== SWITCH ONGLET INSCRIPTION =====
+function switchInscriptionTab(role) {
+    const isAgri = role === 'agriculteur';
+
+    // Panneaux
+    document.getElementById('panelAgriculteur').style.display = isAgri ? 'block' : 'none';
+    document.getElementById('panelOuvrier').style.display     = isAgri ? 'none'  : 'block';
+
+    // Header du modal
+    const header   = document.getElementById('inscriptionModalHeader');
+    const title    = document.getElementById('inscriptionModalTitle');
+    const subtitle = document.getElementById('inscriptionModalSubtitle');
+
+    if (isAgri) {
+        header.style.background = 'linear-gradient(135deg,#1b5e20,#2e7d32)';
+        title.innerHTML  = '<i class="fas fa-seedling me-2"></i>Inscription Agriculteur';
+        subtitle.textContent = 'Publiez des offres et recrutez vos ouvriers';
+    } else {
+        header.style.background = 'linear-gradient(135deg,#e65100,#ff9800)';
+        title.innerHTML  = '<i class="fas fa-hard-hat me-2"></i>Inscription Ouvrier';
+        subtitle.textContent = 'Trouvez du travail agricole près de chez vous';
+    }
+
+    // Boutons sélecteur
+    const btnAgri = document.getElementById('tabBtnAgriculteur');
+    const btnOuv  = document.getElementById('tabBtnOuvrier');
+    btnAgri.style.background  = isAgri ? '#c8e6c9' : '#f8f9fa';
+    btnAgri.style.borderBottom = isAgri ? '3px solid #2e7d32' : '3px solid transparent';
+    btnOuv.style.background   = !isAgri ? '#ffe0b2' : '#f8f9fa';
+    btnOuv.style.borderBottom  = !isAgri ? '3px solid #ff9800' : '3px solid transparent';
+}
+
+// ===== INIT =====
+document.getElementById('btnFiltrer')?.addEventListener('click', chargerOffres);
+updateNavbar();
+chargerStatistiques();
+</script>
+</body>
+</html>

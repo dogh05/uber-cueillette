@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber-Cueillette - Dashboard Ouvrier</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f5f5; }
+        .sidebar {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            min-height: 100vh; color: white; position: fixed; width: 280px; z-index: 100;
+        }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-header h3 { margin: 0; font-size: 1.5rem; }
+        .sidebar-header p  { margin: 10px 0 0; font-size: 0.8rem; opacity: 0.8; }
+        .nav-menu { padding: 20px 0; }
+        .nav-item { list-style: none; margin: 5px 0; }
+        .nav-link-custom { display: flex; align-items: center; padding: 12px 25px; color: white; text-decoration: none; transition: all 0.3s; }
+        .nav-link-custom:hover, .nav-link-custom.active { background: rgba(255,255,255,0.2); }
+        .nav-link-custom i { width: 30px; margin-right: 10px; }
+        .main-content { margin-left: 280px; padding: 20px; }
+        .top-bar { background: white; border-radius: 15px; padding: 15px 25px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .page-title { font-size: 1.5rem; font-weight: 600; color: #333; }
+        .card-dashboard { background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-mini-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px; border-left: 4px solid #2e7d32; }
+        .stat-mini-card.orange { border-left-color: #ff9800; }
+        .stat-mini-card.blue   { border-left-color: #2196f3; }
+        .stat-mini-card.red    { border-left-color: #dc3545; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .stat-icon.green  { background: #e8f5e9; color: #2e7d32; }
+        .stat-icon.orange { background: #fff3e0; color: #ff9800; }
+        .stat-icon.blue   { background: #e3f2fd; color: #2196f3; }
+        .stat-icon.red    { background: #fce4ec; color: #dc3545; }
+        .stat-info h4 { font-size: 1.5rem; font-weight: 700; margin: 0; color: #333; }
+        .stat-info p  { font-size: 0.75rem; color: #888; margin: 0; }
+        .offre-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #e0e0e0; transition: all 0.3s; }
+        .offre-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .btn-deconnexion { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; transition: background 0.3s; }
+        .btn-deconnexion:hover { background: #c82333; }
+        .btn-success-custom { background: #2e7d32; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; transition: background 0.3s; }
+        .btn-success-custom:hover { background: #1b5e20; }
+        .btn-postuler { background: #ff9800; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .btn-postuler:hover { background: #e65100; }
+        .badge-success { background: #4caf50; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .badge-warning { background: #ff9800; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .badge-danger  { background: #dc3545; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .chart-container { position: relative; height: 220px; }
+        .alert-floating { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        @keyframes slideIn  { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-280px); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-hard-hat"></i> Uber-Cueillette</h3>
+        <p id="welcomeText">Espace Ouvrier</p>
+    </div>
+    <ul class="nav-menu">
+        <li class="nav-item"><a href="#" class="nav-link-custom active" data-page="dashboard">       <i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="offres">                 <i class="fas fa-search"></i> Consulter les offres</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="mes-postulations">       <i class="fas fa-file-alt"></i> Mes postulations</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="anciens-chantiers">      <i class="fas fa-history"></i> Anciens chantiers</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="statistiques">           <i class="fas fa-chart-bar"></i> Statistiques</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" data-page="profil">                 <i class="fas fa-user"></i> Mon profil</a></li>
+        <li class="nav-item"><a href="index.html" class="nav-link-custom">                           <i class="fas fa-home"></i> Accueil</a></li>
+        <li class="nav-item"><a href="#" class="nav-link-custom" id="logoutLink">                    <i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+    </ul>
+</div>
+
+<div class="main-content">
+    <div class="top-bar">
+        <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
+        <button class="btn-deconnexion" onclick="deconnecter()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+    </div>
+    <div id="pageContent"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+fetch('php/verifier_session.php')
+    .then(res => res.json())
+    .then(data => {
+        if (!data.connecte) { window.location.href = 'index.html'; return; }
+        if (data.type !== 'ouvrier') { window.location.href = 'dashboard_agriculteur.html'; return; }
+        document.getElementById('welcomeText').innerHTML = `Bienvenue <strong>${data.pseudo}</strong>`;
+    }).catch(() => {});
+
+function showMessage(msg, isError = true) {
+    const d = document.createElement('div');
+    d.className = `alert alert-${isError ? 'danger' : 'success'} alert-floating`;
+    d.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'} me-2"></i>${msg}`;
+    document.body.appendChild(d);
+    setTimeout(() => { d.style.animation = 'slideOut 0.3s ease'; setTimeout(() => d.remove(), 300); }, 3500);
+}
+
+function deconnecter() { fetch('php/deconnexion.php').then(() => window.location.href = 'index.html'); }
+document.getElementById('logoutLink').addEventListener('click', e => { e.preventDefault(); deconnecter(); });
+function spinner() { return '<div class="text-center py-4"><div class="spinner-border text-success"></div></div>'; }
+
+document.querySelectorAll('.nav-link-custom[data-page]').forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('.nav-link-custom').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        chargerPage(link.getAttribute('data-page'));
+    });
+});
+
+function chargerPage(page) {
+    const titles = { dashboard:'Tableau de bord', offres:'Offres de récolte', 'mes-postulations':'Mes postulations', 'anciens-chantiers':'Anciens chantiers', statistiques:'Mes statistiques', profil:'Mon profil' };
+    document.getElementById('pageTitle').innerText = titles[page] || '';
+    ({ dashboard: chargerDashboard, offres: chargerOffres, 'mes-postulations': chargerMesPostulations, 'anciens-chantiers': chargerAnciensChantiers, statistiques: chargerStatistiques, profil: chargerProfil }[page] || (() => {}))();
+}
+
+// ── DASHBOARD ──
+function chargerDashboard() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    Promise.all([
+        fetch('php/lister_offres.php').then(r => r.json()).catch(() => []),
+        fetch('php/mes_postulations.php').then(r => r.json()).catch(() => [])
+    ]).then(([offres, postulations]) => {
+        offres = Array.isArray(offres) ? offres : [];
+        postulations = Array.isArray(postulations) ? postulations : [];
+        const nbAcceptes  = postulations.filter(p => p.decision === 'accepte').length;
+        const nbEnAttente = postulations.filter(p => !p.decision || p.decision === 'en_attente').length;
+        document.getElementById('pageContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-mini-card"><div class="stat-icon green"><i class="fas fa-briefcase"></i></div><div class="stat-info"><h4>${offres.length}</h4><p>Offres disponibles</p></div></div>
+                <div class="stat-mini-card orange"><div class="stat-icon orange"><i class="fas fa-file-alt"></i></div><div class="stat-info"><h4>${postulations.length}</h4><p>Mes candidatures</p></div></div>
+                <div class="stat-mini-card blue"><div class="stat-icon blue"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h4>${nbAcceptes}</h4><p>Acceptées</p></div></div>
+                <div class="stat-mini-card red"><div class="stat-icon red"><i class="fas fa-clock"></i></div><div class="stat-info"><h4>${nbEnAttente}</h4><p>En attente</p></div></div>
+            </div>
+            <div class="card-dashboard">
+                <h5><i class="fas fa-info-circle text-success me-2"></i>Bienvenue sur votre espace ouvrier</h5>
+                <p class="mt-2">Vous pouvez :</p>
+                <ul class="mt-1">
+                    <li>Consulter les offres de récolte disponibles</li>
+                    <li>Postuler en un clic aux offres</li>
+                    <li>Suivre vos candidatures et leur statut</li>
+                    <li>Consulter vos anciens chantiers et gains</li>
+                </ul>
+                <button class="btn-success-custom mt-3" onclick="chargerPage('offres')"><i class="fas fa-search me-2"></i>Voir les offres</button>
+            </div>`;
+    });
+}
+
+// ── OFFRES ──
+function chargerOffres() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/lister_offres.php').then(res => res.json()).then(offres => {
+        if (!Array.isArray(offres) || offres.length === 0) {
+            document.getElementById('pageContent').innerHTML = '<div class="card-dashboard text-center"><p>Aucune offre disponible pour le moment.</p></div>'; return;
+        }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="card-dashboard">
+                <h5><i class="fas fa-briefcase text-success me-2"></i>Offres disponibles (${offres.length})</h5>
+                <div class="mt-3">${offres.map(o => `
+                    <div class="offre-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-5"><strong>${o.fruit||'N/A'}</strong> — ${o.gouvernorat||'N/A'}<br>
+                                <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>${o.adresse||''}</small><br>
+                                <small>Du <strong>${o.date_debut}</strong> au <strong>${o.date_fin}</strong></small>
+                            </div>
+                            <div class="col-md-4"><strong class="text-success fs-5">${o.prix_journee} DT/jour</strong><br>
+                                <small><i class="fas fa-users me-1"></i>${o.nombre_ouvriers} ouvrier(s)</small>
+                            </div>
+                            <div class="col-md-3 text-end"><button class="btn-postuler" onclick="postuler(${o.id_offre})"><i class="fas fa-paper-plane me-1"></i>Postuler</button></div>
+                        </div>
+                    </div>`).join('')}
+                </div>
+            </div>`;
+    }).catch(() => showMessage('Erreur lors du chargement des offres', true));
+}
+
+function postuler(idOffre) {
+    fetch('php/postuler.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`id_offre=${idOffre}` })
+    .then(r => r.json()).then(res => { showMessage(res.message||(res.success?'Candidature envoyée !':'Erreur'), !res.success); if(res.success) chargerPage('mes-postulations'); })
+    .catch(() => showMessage('Erreur de connexion au serveur', true));
+}
+
+// ── MES POSTULATIONS ──
+function chargerMesPostulations() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/mes_postulations.php').then(res => res.json()).then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+            document.getElementById('pageContent').innerHTML = `<div class="card-dashboard text-center"><p>Aucune candidature pour le moment.</p><button class="btn-success-custom mt-2" onclick="chargerPage('offres')">Voir les offres</button></div>`; return;
+        }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="card-dashboard">
+                <h5><i class="fas fa-file-alt text-success me-2"></i>Mes candidatures (${data.length})</h5>
+                <div class="mt-3">${data.map(p => `
+                    <div class="offre-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-5"><strong>${p.fruit||'N/A'}</strong> — ${p.gouvernorat||'N/A'}<br><small class="text-muted">Postulé le : ${p.date_candidature}</small></div>
+                            <div class="col-md-4"><span class="badge-${p.decision==='accepte'?'success':(p.decision==='refuse'?'danger':'warning')}">${p.decision==='accepte'?'✓ Accepté':(p.decision==='refuse'?'✗ Refusé':'⏳ En attente')}</span></div>
+                            <div class="col-md-3">${p.decision==='accepte'?`<small class="text-success fw-bold">${p.prix_journee} DT/jour</small>`:''}</div>
+                        </div>
+                    </div>`).join('')}
+                </div>
+            </div>`;
+    }).catch(() => showMessage('Erreur lors du chargement', true));
+}
+
+// ── ANCIENS CHANTIERS ──
+function chargerAnciensChantiers() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/anciens_chantiers.php').then(res => res.json()).then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+            document.getElementById('pageContent').innerHTML = '<div class="card-dashboard text-center"><p>Aucun ancien chantier.</p></div>'; return;
+        }
+        let totalGains = data.reduce((s,c) => s+(parseFloat(c.remuneration)||0), 0);
+        const moyNote  = (data.reduce((s,c) => s+(parseFloat(c.note)||0), 0) / data.length).toFixed(1);
+        document.getElementById('pageContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-mini-card"><div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div><div class="stat-info"><h4>${totalGains.toFixed(2)} DT</h4><p>Total des gains</p></div></div>
+                <div class="stat-mini-card orange"><div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div><div class="stat-info"><h4>${data.length}</h4><p>Chantiers terminés</p></div></div>
+                <div class="stat-mini-card blue"><div class="stat-icon blue"><i class="fas fa-star"></i></div><div class="stat-info"><h4>${moyNote}/5</h4><p>Note moyenne</p></div></div>
+            </div>
+            <div class="card-dashboard">
+                <h5><i class="fas fa-history text-success me-2"></i>Mes anciens chantiers</h5>
+                <div class="mt-3">${data.map(c => `
+                    <div class="offre-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-4"><strong>${c.fruit||'N/A'}</strong> — ${c.gouvernorat||'N/A'}</div>
+                            <div class="col-md-3"><small>Du ${c.date_debut} au ${c.date_fin}</small></div>
+                            <div class="col-md-2"><span class="badge-success">⭐ ${c.note}/10</span></div>
+                            <div class="col-md-3 text-end"><strong class="text-success">${c.remuneration} DT</strong></div>
+                        </div>
+                        ${c.commentaire?`<div class="mt-2"><small class="text-muted"><i class="fas fa-comment me-1"></i>${c.commentaire}</small></div>`:''}
+                    </div>`).join('')}
+                </div>
+            </div>`;
+    }).catch(() => showMessage('Erreur lors du chargement', true));
+}
+
+// ── STATISTIQUES ──
+function chargerStatistiques() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    Promise.all([
+        fetch('php/mes_postulations.php').then(r => r.json()).catch(() => []),
+        fetch('php/anciens_chantiers.php').then(r => r.json()).catch(() => [])
+    ]).then(([postulations, chantiers]) => {
+        postulations = Array.isArray(postulations) ? postulations : [];
+        chantiers    = Array.isArray(chantiers)    ? chantiers    : [];
+        const nbAcceptes = postulations.filter(p => p.decision==='accepte').length;
+        const nbRefuses  = postulations.filter(p => p.decision==='refuse').length;
+        const nbAttente  = postulations.filter(p => !p.decision||p.decision==='en_attente').length;
+        const totalGains = chantiers.reduce((s,c) => s+(parseFloat(c.remuneration)||0), 0);
+        const moyNote    = chantiers.length>0 ? (chantiers.reduce((s,c)=>s+(parseFloat(c.note)||0),0)/chantiers.length).toFixed(1) : 'N/A';
+        const fruitsCount = {};
+        chantiers.forEach(c => { if(c.fruit) fruitsCount[c.fruit]=(fruitsCount[c.fruit]||0)+1; });
+        const fL = Object.keys(fruitsCount).length>0 ? Object.keys(fruitsCount)   : ['Tomates','Oranges','Olives','Raisins'];
+        const fD = Object.keys(fruitsCount).length>0 ? Object.values(fruitsCount) : [3,2,4,1];
+        document.getElementById('pageContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-mini-card"><div class="stat-icon green"><i class="fas fa-file-alt"></i></div><div class="stat-info"><h4>${postulations.length}</h4><p>Total candidatures</p></div></div>
+                <div class="stat-mini-card blue"><div class="stat-icon blue"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h4>${nbAcceptes}</h4><p>Acceptées</p></div></div>
+                <div class="stat-mini-card red"><div class="stat-icon red"><i class="fas fa-times-circle"></i></div><div class="stat-info"><h4>${nbRefuses}</h4><p>Refusées</p></div></div>
+                <div class="stat-mini-card orange"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><h4>${nbAttente}</h4><p>En attente</p></div></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><div class="card-dashboard"><h6 class="mb-3"><i class="fas fa-chart-pie text-success me-2"></i>Statut des candidatures</h6><div class="chart-container"><canvas id="chartCandidatures"></canvas></div></div></div>
+                <div class="col-md-6"><div class="card-dashboard"><h6 class="mb-3"><i class="fas fa-chart-bar text-success me-2"></i>Chantiers par type de fruit</h6><div class="chart-container"><canvas id="chartFruits"></canvas></div></div></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><div class="card-dashboard text-center"><i class="fas fa-money-bill-wave fa-3x text-success mb-3"></i><h3 class="text-success">${totalGains.toFixed(2)} DT</h3><p class="text-muted">Total des gains cumulés</p></div></div>
+                <div class="col-md-6"><div class="card-dashboard text-center"><i class="fas fa-star fa-3x text-warning mb-3"></i><h3 class="text-warning">${moyNote}/5</h3><p class="text-muted">Note moyenne reçue</p></div></div>
+            </div>`;
+        new Chart(document.getElementById('chartCandidatures'), { type:'doughnut', data:{ labels:['Acceptées','Refusées','En attente'], datasets:[{data:[nbAcceptes||1,nbRefuses||1,nbAttente||1],backgroundColor:['#4caf50','#dc3545','#ff9800'],borderWidth:0}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}} });
+        new Chart(document.getElementById('chartFruits'), { type:'bar', data:{ labels:fL, datasets:[{label:'Chantiers',data:fD,backgroundColor:'#2e7d32',borderRadius:8}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}} });
+    }).catch(() => showMessage('Erreur lors du chargement des statistiques', true));
+}
+
+// ── PROFIL (modification inline conservée) ──
+function chargerProfil() {
+    document.getElementById('pageContent').innerHTML = spinner();
+    fetch('php/profil_ouvrier.php').then(r => r.json()).then(data => {
+        if (data.error) { document.getElementById('pageContent').innerHTML = `<div class="card-dashboard"><p class="text-danger">${data.error}</p></div>`; return; }
+        const photoHtml = data.photo
+            ? `<img src="data:image/jpeg;base64,${data.photo}" id="previewPhoto" class="rounded-circle shadow" style="width:110px;height:110px;object-fit:cover;display:block;margin:0 auto 12px;">`
+            : `<div id="previewPhoto" style="width:110px;height:110px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;"><i class="fas fa-user fa-3x text-success"></i></div>`;
+        document.getElementById('pageContent').innerHTML = `
+            <div class="card-dashboard">
+                <h5><i class="fas fa-user text-success me-2"></i>Mon profil</h5>
+                <ul class="nav nav-tabs mt-3 mb-3">
+                    <li class="nav-item"><button class="nav-link active" id="tab-voir" onclick="switchProfilTab('voir')"><i class="fas fa-eye me-1"></i>Mes informations</button></li>
+                    <li class="nav-item"><button class="nav-link" id="tab-edit" onclick="switchProfilTab('edit')"><i class="fas fa-edit me-1"></i>Modifier</button></li>
+                </ul>
+                <div id="panel-voir">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">${photoHtml}<span class="badge bg-success mt-1">Ouvrier</span></div>
+                        <div class="col-md-9">
+                            <table class="table table-borderless mb-0">
+                                <tr><td style="width:140px;color:#888;font-size:.9rem;"><i class="fas fa-user me-2 text-success"></i>Nom</td><td><strong>${data.nom} ${data.prenom}</strong></td></tr>
+                                <tr><td style="color:#888;font-size:.9rem;"><i class="fas fa-envelope me-2 text-success"></i>Email</td><td>${data.email}</td></tr>
+                                <tr><td style="color:#888;font-size:.9rem;"><i class="fas fa-id-card me-2 text-success"></i>CIN</td><td>${data.CIN}</td></tr>
+                                <tr><td style="color:#888;font-size:.9rem;"><i class="fas fa-at me-2 text-success"></i>Pseudo</td><td>${data.pseudo}</td></tr>
+                                <tr><td style="color:#888;font-size:.9rem;vertical-align:top;"><i class="fas fa-align-left me-2 text-success"></i>Description</td><td>${data.description||'<span class="text-muted">Non renseignée</span>'}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="panel-edit" style="display:none;">
+                    <form id="formModifierProfil">
+                        <div class="row">
+                            <div class="col-md-3 text-center mb-3">
+                                ${photoHtml.replace('id="previewPhoto"','id="previewPhoto2"')}
+                                <label class="btn btn-outline-success btn-sm mt-2" style="cursor:pointer;">
+                                    <i class="fas fa-camera me-1"></i>Changer photo
+                                    <input type="file" id="nouvellePhoto" accept="image/jpeg,image/png,image/jpg,image/gif" style="display:none;" onchange="previewNewPhoto(this)">
+                                </label>
+                                <small class="d-block text-muted mt-1">JPEG/PNG, max 2MB</small>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Nom</label><input type="text" id="edit_nom" class="form-control" value="${data.nom}" required></div>
+                                    <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Prénom</label><input type="text" id="edit_prenom" class="form-control" value="${data.prenom}" required></div>
+                                    <div class="col-md-12 mb-3"><label class="form-label fw-semibold">Email</label><input type="email" id="edit_email" class="form-control" value="${data.email}" required></div>
+                                    <div class="col-md-12 mb-3"><label class="form-label fw-semibold">Description <small class="text-muted fw-normal">(expérience, niveau éducatif)</small></label><textarea id="edit_description" class="form-control" rows="4">${data.description||''}</textarea></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="submit" id="btnSaveProfil" class="btn-success-custom"><i class="fas fa-save me-2"></i>Enregistrer les modifications</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="switchProfilTab('voir')">Annuler</button>
+                        </div>
+                    </form>
+                </div>
+            </div>`;
+        document.getElementById('formModifierProfil').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveProfil');
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enregistrement...';
+            const photo = document.getElementById('nouvellePhoto').files[0];
+            const fd = new FormData();
+            fd.append('nom', document.getElementById('edit_nom').value.trim());
+            fd.append('prenom', document.getElementById('edit_prenom').value.trim());
+            fd.append('email', document.getElementById('edit_email').value.trim());
+            fd.append('description', document.getElementById('edit_description').value.trim());
+            if (photo) fd.append('photo', photo);
+            try {
+                const res = await fetch('php/modifier_profil_ouvrier.php', { method:'POST', body:fd });
+                const resp = await res.json();
+                showMessage(resp.message, !resp.success);
+                if (resp.success) setTimeout(() => chargerProfil(), 800);
+                else { btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-2"></i>Enregistrer les modifications'; }
+            } catch { showMessage('Erreur de connexion au serveur', true); btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-2"></i>Enregistrer les modifications'; }
+        });
+    }).catch(() => { document.getElementById('pageContent').innerHTML=`<div class="card-dashboard text-center"><i class="fas fa-user-circle fa-4x text-muted mb-3"></i><p class="text-muted">Profil indisponible.</p></div>`; });
+}
+
+function switchProfilTab(tab) {
+    document.getElementById('panel-voir').style.display = tab==='voir'?'block':'none';
+    document.getElementById('panel-edit').style.display = tab==='edit'?'block':'none';
+    document.getElementById('tab-voir').classList.toggle('active', tab==='voir');
+    document.getElementById('tab-edit').classList.toggle('active', tab==='edit');
+}
+function previewNewPhoto(input) {
+    if (!input.files||!input.files[0]) return;
+    const file=input.files[0];
+    if (file.size>2*1024*1024) { showMessage('Photo trop grande (max 2MB)',true); input.value=''; return; }
+    const reader=new FileReader();
+    reader.onload=e=>{ const p=document.getElementById('previewPhoto2'); if(p) p.outerHTML=`<img id="previewPhoto2" src="${e.target.result}" class="rounded-circle shadow" style="width:110px;height:110px;object-fit:cover;display:block;margin:0 auto 12px;">`; };
+    reader.readAsDataURL(file);
+}
+
+chargerDashboard();
+</script>
+</body>
+</html>
